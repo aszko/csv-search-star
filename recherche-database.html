@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche de Données - Base de Données CSV</title>
+    <meta name="description" content="Interface de recherche pour base de données CSV - Recherchez par nom, prénom, email, ville, téléphone et plus" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 50%, #0f1419 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 4rem 0 2rem;
+        }
+        
+        .hero-icon {
+            display: inline-block;
+            padding: 1rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px -10px rgba(34, 197, 94, 0.3);
+        }
+        
+        .hero-icon svg {
+            width: 3rem;
+            height: 3rem;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            max-width: 40rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            color: #64748b;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stat svg {
+            width: 1rem;
+            height: 1rem;
+            color: #22c55e;
+        }
+        
+        .search-container {
+            max-width: 40rem;
+            margin: 0 auto 3rem;
+            position: relative;
+        }
+        
+        .search-box {
+            display: flex;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        .search-input::placeholder {
+            color: #64748b;
+        }
+        
+        .search-btn {
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .search-btn:hover {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+        
+        .search-btn:disabled {
+            background: #374151;
+            cursor: not-allowed;
+        }
+        
+        .search-btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .results-hint {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+        
+        .person-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        .person-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            border-color: #22c55e;
+        }
+        
+        .person-header {
+            display: flex;
+            items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .person-avatar {
+            width: 3rem;
+            height: 3rem;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+        
+        .person-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        
+        .person-details {
+            display: grid;
+            gap: 0.75rem;
+        }
+        
+        .person-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            background: #0f172a;
+            border-radius: 0.5rem;
+        }
+        
+        .person-detail svg {
+            width: 1rem;
+            height: 1rem;
+            color: #22c55e;
+            flex-shrink: 0;
+        }
+        
+        .person-detail span {
+            color: #cbd5e1;
+            font-size: 0.875rem;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 4rem 0;
+        }
+        
+        .no-results-icon {
+            width: 6rem;
+            height: 6rem;
+            background: #1e293b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        
+        .no-results-icon svg {
+            width: 3rem;
+            height: 3rem;
+            color: #64748b;
+        }
+        
+        .no-results h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .no-results p {
+            color: #64748b;
+        }
+        
+        .initial-state {
+            text-align: center;
+            padding: 4rem 0;
+        }
+        
+        .search-types {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            max-width: 20rem;
+            margin: 0 auto 2rem;
+        }
+        
+        .search-type {
+            padding: 1rem;
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid rgba(51, 65, 85, 0.2);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .search-types {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="hero-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </div>
+            
+            <h1>Recherche de Données</h1>
+            
+            <p>
+                Effectuez une recherche complète dans la base de données. 
+                Recherchez par nom, prénom, email, ville, téléphone ou toute autre information.
+            </p>
+            
+            <div class="stats">
+                <div class="stat">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                    <span id="total-count">50 personnes</span>
+                </div>
+                <div class="stat">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <span>Recherche instantanée</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="Rechercher par nom, email, ville, téléphone..."
+                />
+                <button id="searchBtn" class="search-btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Rechercher
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="hidden">
+            <div class="results-header">
+                <h2 id="resultsTitle" class="results-title"></h2>
+                <div id="resultsHint" class="results-hint">
+                    Cliquez sur une carte pour voir les détails
+                </div>
+            </div>
+            <div id="resultsGrid" class="results-grid"></div>
+        </div>
+
+        <!-- No Results -->
+        <div id="noResults" class="no-results hidden">
+            <div class="no-results-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <h3>Aucun résultat</h3>
+            <p>Essayez avec d'autres termes de recherche ou vérifiez l'orthographe.</p>
+        </div>
+
+        <!-- Initial State -->
+        <div id="initialState" class="initial-state">
+            <div class="search-types">
+                <div class="search-type">Nom</div>
+                <div class="search-type">Email</div>
+                <div class="search-type">Ville</div>
+                <div class="search-type">Téléphone</div>
+            </div>
+            <p style="color: #64748b;">
+                Utilisez la barre de recherche ci-dessus pour commencer votre recherche
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Données de test simulant le fichier CSV
+        const testPersons = [
+            {
+                "Nom": "Martin",
+                "Prénom": "Jean",
+                "Email": "jean.martin@email.com",
+                "Adresse": "123 Rue de la Paix",
+                "Ville": "Paris",
+                "Code Postal": "75001",
+                "Téléphone": "01 23 45 67 89",
+                "Date de Naissance": "15/03/1985",
+                "Département de Naissance": "75 - Paris",
+                "IBAN": "FR76 1234 5678 9012 3456 7890 123"
+            },
+            {
+                "Nom": "Dubois",
+                "Prénom": "Marie",
+                "Email": "marie.dubois@example.com",
+                "Adresse": "456 Avenue des Champs",
+                "Ville": "Lyon",
+                "Code Postal": "69000",
+                "Téléphone": "04 56 78 90 12",
+                "Date de Naissance": "22/07/1990",
+                "Département de Naissance": "69 - Rhône",
+                "IBAN": "FR76 2345 6789 0123 4567 8901 234"
+            },
+            {
+                "Nom": "Leroy",
+                "Prénom": "Pierre",
+                "Email": "pierre.leroy@mail.fr",
+                "Adresse": "789 Boulevard de la République",
+                "Ville": "Marseille",
+                "Code Postal": "13000",
+                "Téléphone": "04 91 23 45 67",
+                "Date de Naissance": "08/12/1978",
+                "Département de Naissance": "13 - Bouches-du-Rhône",
+                "IBAN": "FR76 3456 7890 1234 5678 9012 345"
+            },
+            {
+                "Nom": "Moreau",
+                "Prénom": "Sophie",
+                "Email": "sophie.moreau@gmail.com",
+                "Adresse": "321 Rue du Commerce",
+                "Ville": "Toulouse",
+                "Code Postal": "31000",
+                "Téléphone": "05 34 56 78 90",
+                "Date de Naissance": "14/05/1992",
+                "Département de Naissance": "31 - Haute-Garonne",
+                "IBAN": "FR76 4567 8901 2345 6789 0123 456"
+            },
+            {
+                "Nom": "Laurent",
+                "Prénom": "Michel",
+                "Email": "michel.laurent@hotmail.fr",
+                "Adresse": "654 Place de la Liberté",
+                "Ville": "Nice",
+                "Code Postal": "06000",
+                "Téléphone": "04 93 12 34 56",
+                "Date de Naissance": "03/09/1987",
+                "Département de Naissance": "06 - Alpes-Maritimes",
+                "IBAN": "FR76 5678 9012 3456 7890 1234 567"
+            }
+        ];
+
+        let hasSearched = false;
+
+        function getInitials(nom, prenom) {
+            return (nom.charAt(0) + prenom.charAt(0)).toUpperCase();
+        }
+
+        function createPersonCard(person, index) {
+            return `
+                <div class="person-card" style="animation-delay: ${index * 100}ms">
+                    <div class="person-header">
+                        <div class="person-avatar">
+                            ${getInitials(person.Nom, person.Prénom)}
+                        </div>
+                        <div class="person-name">
+                            ${person.Prénom} ${person.Nom}
+                        </div>
+                    </div>
+                    <div class="person-details">
+                        <div class="person-detail">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>${person.Email}</span>
+                        </div>
+                        <div class="person-detail">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>${person.Ville} (${person["Code Postal"]})</span>
+                        </div>
+                        <div class="person-detail">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            <span>${person.Téléphone}</span>
+                        </div>
+                        <div class="person-detail">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4m-6 0V6a2 2 0 012-2h4a2 2 0 012 2v1M8 7l8 0v1a2 2 0 01-2 2H10a2 2 0 01-2-2V7z"></path>
+                            </svg>
+                            <span>${person["Date de Naissance"]}</span>
+                        </div>
+                        <div class="person-detail">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <span>${person.Adresse}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function performSearch(query) {
+            if (!query.trim()) {
+                showInitialState();
+                return;
+            }
+
+            const searchTerm = query.toLowerCase();
+            const results = testPersons.filter(person => {
+                const searchableText = Object.values(person).join(' ').toLowerCase();
+                return searchableText.includes(searchTerm);
+            });
+
+            showResults(results);
+        }
+
+        function showResults(results) {
+            hasSearched = true;
+            document.getElementById('initialState').classList.add('hidden');
+            document.getElementById('noResults').classList.add('hidden');
+            
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsTitle = document.getElementById('resultsTitle');
+            const resultsGrid = document.getElementById('resultsGrid');
+            const resultsHint = document.getElementById('resultsHint');
+
+            if (results.length > 0) {
+                resultsTitle.textContent = `${results.length} résultat${results.length > 1 ? 's' : ''} trouvé${results.length > 1 ? 's' : ''}`;
+                resultsGrid.innerHTML = results.map((person, index) => createPersonCard(person, index)).join('');
+                resultsHint.classList.remove('hidden');
+                resultsSection.classList.remove('hidden');
+            } else {
+                resultsSection.classList.add('hidden');
+                document.getElementById('noResults').classList.remove('hidden');
+            }
+        }
+
+        function showInitialState() {
+            hasSearched = false;
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('noResults').classList.add('hidden');
+            document.getElementById('initialState').classList.remove('hidden');
+        }
+
+        // Event listeners
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const query = document.getElementById('searchInput').value;
+            performSearch(query);
+        });
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const query = this.value;
+                performSearch(query);
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', function() {
+            if (!this.value.trim() && hasSearched) {
+                showInitialState();
+            }
+        });
+
+        // Update total count
+        document.getElementById('total-count').textContent = `${testPersons.length} personnes`;
+    </script>
+</body>
+</html>
