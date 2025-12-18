@@ -1,13 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SearchBar } from "@/components/SearchBar";
-import { PersonCard } from "@/components/PersonCard";
-import { testPersons, type Person } from "@/data/testData";
+import { ContactCard } from "@/components/ContactCard";
+import { CsvImport } from "@/components/CsvImport";
+import { Contact } from "@/types/contact";
+import { supabase } from "@/integrations/supabase/client";
 import { Database, Users, Search as SearchIcon } from "lucide-react";
 
 const Index = () => {
-  const [results, setResults] = useState<Person[]>([]);
+  const [results, setResults] = useState<Contact[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+
+  const fetchTotalCount = async () => {
+    const { count } = await supabase
+      .from('contacts')
+      .select('*', { count: 'exact', head: true });
+    setTotalCount(count || 0);
+  };
+
+  useEffect(() => {
+    fetchTotalCount();
+  }, []);
 
   const handleSearch = async (query: string) => {
     if (!query.trim()) {
@@ -18,18 +32,25 @@ const Index = () => {
 
     setIsSearching(true);
     
-    // Simulate API delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const searchTerm = query.toLowerCase();
-    const filteredResults = testPersons.filter(person => {
-      const searchableText = `${person.Nom} ${person.Prénom} ${person.Email} ${person.Adresse} ${person.Ville} ${person.Téléphone} ${person["Code Postal"]} ${person["Date de Naissance"]} ${person["Département de Naissance"]} ${person.IBAN}`.toLowerCase();
-      return searchableText.includes(searchTerm);
-    });
-    
-    setResults(filteredResults);
-    setIsSearching(false);
-    setHasSearched(true);
+    try {
+      const searchTerm = `%${query}%`;
+      
+      const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .or(`last_name.ilike.${searchTerm},first_name.ilike.${searchTerm},email.ilike.${searchTerm},city.ilike.${searchTerm},phone.ilike.${searchTerm},address.ilike.${searchTerm},zipcode.ilike.${searchTerm}`)
+        .limit(100);
+
+      if (error) throw error;
+      
+      setResults(data || []);
+    } catch (error) {
+      console.error('Search error:', error);
+      setResults([]);
+    } finally {
+      setIsSearching(false);
+      setHasSearched(true);
+    }
   };
 
   return (
@@ -52,15 +73,20 @@ const Index = () => {
             Recherchez par nom, prénom, email, ville, téléphone ou toute autre information.
           </p>
           
-          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground mb-12">
+          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground mb-8">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
-              <span>{testPersons.length} personnes</span>
+              <span>{totalCount.toLocaleString()} contacts</span>
             </div>
             <div className="flex items-center gap-2">
               <SearchIcon className="w-4 h-4 text-primary" />
               <span>Recherche instantanée</span>
             </div>
+          </div>
+
+          {/* CSV Import */}
+          <div className="flex justify-center mb-8">
+            <CsvImport onImportComplete={fetchTotalCount} />
           </div>
         </div>
 
@@ -82,7 +108,7 @@ const Index = () => {
               
               {results.length > 0 && (
                 <div className="text-sm text-muted-foreground">
-                  Cliquez sur une carte pour voir les détails
+                  Limité à 100 résultats
                 </div>
               )}
             </div>
@@ -90,10 +116,10 @@ const Index = () => {
 
           {results.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {results.map((person, index) => (
-                <div key={index} className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                     style={{ animationDelay: `${index * 100}ms` }}>
-                  <PersonCard person={person} />
+              {results.map((contact, index) => (
+                <div key={contact.id} className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                     style={{ animationDelay: `${index * 50}ms` }}>
+                  <ContactCard contact={contact} />
                 </div>
               ))}
             </div>
@@ -125,7 +151,10 @@ const Index = () => {
             </div>
             
             <p className="text-muted-foreground">
-              Utilisez la barre de recherche ci-dessus pour commencer votre recherche
+              {totalCount > 0 
+                ? "Utilisez la barre de recherche ci-dessus pour commencer votre recherche"
+                : "Importez votre fichier CSV pour commencer"
+              }
             </p>
           </div>
         </div>
