@@ -3,6 +3,7 @@ import { SearchBar } from "@/components/SearchBar";
 import { ContactCard } from "@/components/ContactCard";
 import { CsvImport } from "@/components/CsvImport";
 import { TitleBar } from "@/components/TitleBar";
+import { AlgeriaLogo } from "@/components/AlgeriaLogo";
 import { Contact } from "@/types/contact";
 import { supabase } from "@/integrations/supabase/client";
 import { Database, Search as SearchIcon } from "lucide-react";
@@ -76,9 +77,12 @@ const Index = () => {
 
         {/* Title */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Everland <span className="text-primary">dox searcher</span>
-          </h1>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <AlgeriaLogo className="w-12 h-12" />
+            <h1 className="text-3xl font-bold text-foreground">
+              Everland <span className="text-primary">dox searcher</span>
+            </h1>
+          </div>
         </div>
 
         {/* Search */}
