@@ -74,8 +74,15 @@ const Index = () => {
           <CsvImport onImportComplete={fetchTotalCount} />
         </div>
 
+        {/* Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Everland <span className="text-primary">dox searcher</span>
+          </h1>
+        </div>
+
         {/* Search */}
-        <div className="mb-6">
+        <div className="max-w-2xl mx-auto mb-6">
           <SearchBar onSearch={handleSearch} isSearching={isSearching} />
         </div>
 
