@@ -1,7 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Contact } from "@/types/contact";
-import { Mail, Phone, MapPin, Calendar, User } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar } from "lucide-react";
 
 interface ContactCardProps {
   contact: Contact;
@@ -9,7 +7,7 @@ interface ContactCardProps {
 
 export const ContactCard = ({ contact }: ContactCardProps) => {
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return "Non renseigné";
+    if (!dateStr) return null;
     try {
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return dateStr;
@@ -20,53 +18,49 @@ export const ContactCard = ({ contact }: ContactCardProps) => {
   };
 
   return (
-    <Card className="bg-gradient-card shadow-card border-border/20 hover:shadow-glow transition-smooth hover:scale-[1.02]">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" />
-            {contact.first_name || ''} {contact.last_name || ''}
-          </CardTitle>
-          {contact.birth_department && (
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-              Dép: {contact.birth_department}
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {contact.email && (
-            <div className="flex items-center gap-2 text-sm">
-              <Mail className="w-4 h-4 text-primary flex-shrink-0" />
-              <span className="text-muted-foreground truncate">{contact.email}</span>
-            </div>
-          )}
-          
-          {contact.phone && (
-            <div className="flex items-center gap-2 text-sm">
-              <Phone className="w-4 h-4 text-primary flex-shrink-0" />
-              <span className="text-muted-foreground">{contact.phone}</span>
-            </div>
-          )}
-          
-          {(contact.address || contact.city) && (
-            <div className="flex items-center gap-2 text-sm col-span-full">
-              <MapPin className="w-4 h-4 text-primary flex-shrink-0" />
-              <span className="text-muted-foreground">
-                {[contact.address, contact.city, contact.zipcode].filter(Boolean).join(', ')}
-              </span>
-            </div>
-          )}
-          
-          {contact.birth_date && (
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
-              <span className="text-muted-foreground">{formatDate(contact.birth_date)}</span>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="bg-card border border-border rounded p-4 hover:border-primary/50 transition-colors">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-medium text-foreground">
+          {contact.first_name || ''} {contact.last_name || ''}
+        </h3>
+        {contact.birth_department && (
+          <span className="text-xs px-2 py-0.5 bg-primary/20 text-primary rounded">
+            {contact.birth_department}
+          </span>
+        )}
+      </div>
+      
+      <div className="space-y-2 text-sm">
+        {contact.email && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Mail className="w-3.5 h-3.5 text-primary" />
+            <span className="truncate">{contact.email}</span>
+          </div>
+        )}
+        
+        {contact.phone && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Phone className="w-3.5 h-3.5 text-primary" />
+            <span>{contact.phone}</span>
+          </div>
+        )}
+        
+        {(contact.address || contact.city) && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <MapPin className="w-3.5 h-3.5 text-primary" />
+            <span className="truncate">
+              {[contact.city, contact.zipcode].filter(Boolean).join(' ')}
+            </span>
+          </div>
+        )}
+        
+        {contact.birth_date && (
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Calendar className="w-3.5 h-3.5 text-primary" />
+            <span>{formatDate(contact.birth_date)}</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -17,10 +16,6 @@ export const CsvImport = ({ onImportComplete }: CsvImportProps) => {
     const lines = text.split('\n').filter(line => line.trim());
     if (lines.length < 2) return [];
 
-    // Parse header - handle the obfuscated column names
-    const headerLine = lines[0];
-    const headers = headerLine.split(',').map(h => h.trim());
-    
     const rows: Record<string, string>[] = [];
     
     for (let i = 1; i < lines.length; i++) {
@@ -28,8 +23,6 @@ export const CsvImport = ({ onImportComplete }: CsvImportProps) => {
       const values = line.split(',');
       
       if (values.length >= 9) {
-        // Map to our database columns based on position
-        // Format: last_name, first_name (may be split), email, address, zipcode, city, birth_date, birth_department, phone
         const row: Record<string, string> = {
           last_name: values[0]?.trim() || '',
           first_name: values[1]?.trim() || '',
@@ -53,7 +46,7 @@ export const CsvImport = ({ onImportComplete }: CsvImportProps) => {
     if (!file) return;
 
     if (!file.name.endsWith('.csv')) {
-      toast.error("Veuillez sélectionner un fichier CSV");
+      toast.error("Fichier CSV requis");
       return;
     }
 
@@ -65,14 +58,13 @@ export const CsvImport = ({ onImportComplete }: CsvImportProps) => {
       const rows = parseCSV(text);
 
       if (rows.length === 0) {
-        toast.error("Aucune donnée trouvée dans le fichier");
+        toast.error("Aucune donnée trouvée");
         setIsImporting(false);
         return;
       }
 
-      toast.info(`Import de ${rows.length} contacts en cours...`);
+      toast.info(`Import de ${rows.length} contacts...`);
 
-      // Insert in batches of 500 for better performance
       const batchSize = 500;
       let imported = 0;
 
@@ -81,20 +73,17 @@ export const CsvImport = ({ onImportComplete }: CsvImportProps) => {
         
         const { error } = await supabase.from('contacts').insert(batch);
         
-        if (error) {
-          console.error('Insert error:', error);
-          throw error;
-        }
+        if (error) throw error;
 
         imported += batch.length;
         setProgress(Math.round((imported / rows.length) * 100));
       }
 
-      toast.success(`${imported} contacts importés avec succès`);
+      toast.success(`${imported} contacts importés`);
       onImportComplete();
     } catch (error: any) {
       console.error('Import error:', error);
-      toast.error(`Erreur lors de l'import: ${error.message}`);
+      toast.error(`Erreur: ${error.message}`);
     } finally {
       setIsImporting(false);
       setProgress(0);
@@ -105,7 +94,7 @@ export const CsvImport = ({ onImportComplete }: CsvImportProps) => {
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <>
       <input
         ref={fileInputRef}
         type="file"
@@ -115,24 +104,23 @@ export const CsvImport = ({ onImportComplete }: CsvImportProps) => {
         disabled={isImporting}
       />
       
-      <Button
-        variant="outline"
+      <button
         onClick={() => fileInputRef.current?.click()}
         disabled={isImporting}
-        className="bg-secondary/50 border-border/40"
+        className="h-10 px-4 bg-card border border-border rounded text-sm text-muted-foreground hover:text-foreground hover:border-primary/50 transition-colors flex items-center gap-2 disabled:opacity-50"
       >
         {isImporting ? (
           <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Import en cours... {progress}%
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <span>{progress}%</span>
           </>
         ) : (
           <>
-            <Upload className="w-4 h-4 mr-2" />
-            Importer CSV
+            <Upload className="w-4 h-4" />
+            <span>Import CSV</span>
           </>
         )}
-      </Button>
-    </div>
+      </button>
+    </>
   );
 };
